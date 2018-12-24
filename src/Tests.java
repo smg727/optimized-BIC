@@ -1,10 +1,14 @@
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.lang.invoke.StringConcatFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.TreeSet;
+
+import javax.sound.midi.SysexMessage;
 
 import org.junit.jupiter.api.Test;
 
@@ -96,17 +100,38 @@ class Tests {
 		Integer[] data = {117,119,122,123,126,127,7199,7200,7204,7205};
 		List<Integer> values = new ArrayList<>(Arrays.asList(data));
 		TreeSet<Integer> partitions = new TreeSet<>();
-		int bitsRequired = OptimizedBic.bitsRequiredForPartitioned(values, 1, 10000, partitions);
+		int bitsRequired = OptimizedBic.bitsRequiredForPartitioned(values, 1, 10000, partitions, false);
 		if(bitsRequired!=97) {
 			fail("testBitsRequiredForPartitioned error, no partition");
 		}
 		
 		partitions.add(5);
-		bitsRequired = OptimizedBic.bitsRequiredForPartitioned(values, 1, 10000, partitions);
+		bitsRequired = OptimizedBic.bitsRequiredForPartitioned(values, 1, 10000, partitions, false);
 		if(bitsRequired!=56) {
 			fail("testBitsRequiredForPartitioned error, 1 partition");
 		}
 		System.out.println("testBitsRequiredForPartitioned : Pass");
 	}
+	
+	@Test
+	void testfindParitions() throws Exception {
+		Integer[] data = {117,119,122,123,126,127,7199,7200,7204,7205};
+		List<Integer> values = new ArrayList<>(Arrays.asList(data));
+		TreeSet<Integer> partitions = OptimizedBic.findParitions(values, 1, 10000);
+		if(partitions.size()!=1) {
+			fail("testfindParitions found "+partitions.size());
+		}
+		System.out.println("testfindParitions : Pass");
+	}
+	
+//	@Test
+//	void testfindParitionsWithData() throws Exception {
+//		String inputFile = "list/53.txt";
+//		List<Integer> data = FileOps.readFileData(inputFile);
+//		TreeSet<Integer> partitions = OptimizedBic.findParitions(data, data.get(0), data.get(data.size()-1));
+//	}
+	
+	
 
+	
 }

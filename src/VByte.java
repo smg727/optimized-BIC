@@ -33,6 +33,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
+import javax.management.BadAttributeValueExpException;
+
 
 /**
  * Typical implementation of Variable-Byte encoding for integers.
@@ -71,6 +73,15 @@ public class VByte {
 			value>>>=7;
 		}
 		return count;
+	}
+	
+	public static int bitsForMetadata(int low, int high, int minValue, int maxValue) {
+		int bitsRequired  = 0;
+		bitsRequired+= bytesRequired(low)*8;
+		bitsRequired+= bytesRequired(high-low)*8;
+		bitsRequired+= bytesRequired(minValue)*8;
+		bitsRequired+= bytesRequired(maxValue)*8;
+		return bitsRequired;
 	}
 	
 	public static long decode(InputStream in) throws IOException {

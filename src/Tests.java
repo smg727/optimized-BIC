@@ -3,6 +3,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
@@ -57,6 +58,7 @@ class Tests {
 		}
 	}
 	
+	// checks if VByte count return the correct number of bytes for a number
 	@Test
 	void testVByteCount() {
 		
@@ -74,4 +76,21 @@ class Tests {
 		}
 		System.out.println("testVByteCount : Pass");
 	}
+
+	// checks if bit-count for a list is computed correctly
+	@Test
+	void testBitsRequiredForList() {
+		Integer[] data = {117,119,122,123,126,127,7199,7200,7204,7205};
+		List<Integer> values = new ArrayList<>(Arrays.asList(data));
+		int bitsRequired = OptimizedBic.bitsRequiredForList(values, 0, values.size()-1, 1,
+				10000);
+		if(bitsRequired!=97) {
+			fail("testBitsRequiredForList");
+		}
+		System.out.println("testBitsRequiredForList : Pass");
+		
+	}
+
+	
+
 }

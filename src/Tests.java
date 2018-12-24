@@ -17,9 +17,9 @@ import org.junit.jupiter.api.Test;
 class Tests {
 	
 	// checks vByte functionality by encoding & decoding an array of int's
-	@Test
+//	@Test
 	void testVByte() {
-		String testFile = "testFile";
+		String testFile = "testVByte";
 		Integer[] input = {1,100,5,2000};
 		int output[] = new int[4];
 		// compress and write file
@@ -64,7 +64,7 @@ class Tests {
 	}
 	
 	// checks if VByte count return the correct number of bytes for a number
-	@Test
+//	@Test
 	void testVByteCount() {
 		
 		int num = 34;
@@ -83,7 +83,7 @@ class Tests {
 	}
 
 	// checks if bit-count for a list is computed correctly
-	@Test
+//	@Test
 	void testBitsRequiredForList() {
 		Integer[] data = {117,119,122,123,126,127,7199,7200,7204,7205};
 		List<Integer> values = new ArrayList<>(Arrays.asList(data));
@@ -95,7 +95,7 @@ class Tests {
 		System.out.println("testBitsRequiredForList : Pass");	
 	}
 
-	@Test
+//	@Test
 	void testBitsRequiredForPartitioned() throws Exception{
 		Integer[] data = {117,119,122,123,126,127,7199,7200,7204,7205};
 		List<Integer> values = new ArrayList<>(Arrays.asList(data));
@@ -113,7 +113,7 @@ class Tests {
 		System.out.println("testBitsRequiredForPartitioned : Pass");
 	}
 	
-	@Test
+//	@Test
 	void testfindParitions() throws Exception {
 		Integer[] data = {117,119,122,123,126,127,7199,7200,7204,7205};
 		List<Integer> values = new ArrayList<>(Arrays.asList(data));
@@ -124,13 +124,15 @@ class Tests {
 		System.out.println("testfindParitions : Pass");
 	}
 	
-//	@Test
-//	void testfindParitionsWithData() throws Exception {
-//		String inputFile = "list/53.txt";
-//		List<Integer> data = FileOps.readFileData(inputFile);
-//		TreeSet<Integer> partitions = OptimizedBic.findParitions(data, data.get(0), data.get(data.size()-1));
-//	}
-	
+	@Test
+	void testCompressData() throws Exception {
+		Integer[] data = {117,119,122,123,126,127,7199,7200,7204,7205};
+		List<Integer> values = new ArrayList<>(Arrays.asList(data));
+		String testFile = "testFile";
+		BitOutputStream outputStream = new BitOutputStream(testFile);
+		OptimizedBic.compressData(values, outputStream);
+		outputStream.close();
+	}
 	
 
 	

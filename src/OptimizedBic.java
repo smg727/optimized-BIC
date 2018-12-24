@@ -2,9 +2,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.TreeSet;
 
-import org.w3c.dom.ls.LSInput;
-
-
 
 public class OptimizedBic {
 	
@@ -73,6 +70,7 @@ public class OptimizedBic {
 		return bitsRequired;
 	}
 
+	// finds ideal partitions in a list that can reduce size
 	public static TreeSet<Integer> findParitions(List<Integer> values, int minValue, int maxValue) throws Exception{
 		TreeSet<Integer> partitions = new TreeSet<>();
 		
@@ -111,4 +109,114 @@ public class OptimizedBic {
 		}
 	}
 	
+	// compress integer in range and write
+	static void compressAndWriteInteger(int value, int range_low, int range_high, BitOutputStream out) throws java.lang.Exception {
+		if(value<range_low || value>range_high) {
+			throw new Exception("compress and write Integer: "+"compress "+value+" in range ["+range_low+" , "+range_high+"] "+" cannot be outside compress range");
+		}
+		int valueToCompress = value-range_low;
+		int range = range_high-range_low+1;
+		int bitCount = range==1?0:numberOfBits(range);
+		if(bitCount==0)
+			return;
+		out.write(bitCount, valueToCompress);
+	}
+	
+	// takes an array list of values and writes the compressed data to bit output stream
+	static void compressIntegers(List<Integer> values, BitOutputStream out,
+			int low, int high, int minValue, int maxValue) throws java.lang.Exception {
+			
+		if(low>high)
+			return;
+			
+		int mid = low + (high-low)/2;
+		int range_high = maxValue - (high-mid);
+		int range_low = minValue + (mid-low);
+		int midVal = values.get(mid);
+
+		compressAndWriteInteger(midVal, range_low, range_high, out);
+		compressIntegers(values, out, low, mid-1, minValue,midVal-1);
+		compressIntegers(values, out, mid+1, high, midVal+1, maxValue);
+		return;		
+	}
+
+	// compresses the data in values based on Optimized-BIC
+	static void compressData(List<Integer> values, BitOutputStream out) throws Exception {
+
+		//write number of elements
+		VByte.encode(out, values.size());
+		
+		int minValue = values.get(0);
+		int maxValue = values.get(values.size()-1);
+		int low = 0;
+		int high = values.size()-1;
+		// generate partitions
+		TreeSet<Integer> partitions = findParitions(values, values.get(0), values.get(values.size()-1));
+		
+		// if there is no partition, compress the whole list
+		if(partitions.size()==0) {
+			VByte.encode(out, low);
+			VByte.encode(out, high);
+			VByte.encode(out, minValue);
+			VByte.encode(out, maxValue);
+			compressIntegers(values, out, low, high, minValue, maxValue);
+			return;
+		}
+		
+		// If there are partitions, compress partition wise
+		Iterator<Integer> iterator = partitions.iterator();
+		while (iterator.hasNext()) {
+			high = iterator.next();
+			if(high>=values.size()) {
+				throw new Exception("partition point outside range");
+			}
+			minValue = values.get(low);
+			maxValue = values.get(high);
+			VByte.encode(out, low);
+			VByte.encode(out, high);
+			VByte.encode(out, minValue);
+			VByte.encode(out, maxValue);
+			compressIntegers(values, out, low, high, minValue, maxValue);
+			low = high+1;
+		}
+		
+		high = values.size()-1;
+		minValue = values.get(low);
+		maxValue = values.get(high);
+		VByte.encode(out, low);
+		VByte.encode(out, high);
+		VByte.encode(out, minValue);
+		VByte.encode(out, maxValue);
+		compressIntegers(values, out, low, high, minValue, maxValue);
+		out.flush();
+		System.out.println("compression complete");
+	}
+
+	// fills data into []values. Decompressing logic sits here
+	static void decompressInteger(int[] values, int low, int high, int minValue, int maxValue, BitInputStream in) throws Exception {
+		
+		if(low>high)
+			return;
+			
+		int mid = low + (high-low)/2;
+		int range_high = maxValue - (high-mid);
+		int range_low = minValue + (mid-low);
+		int range = range_high-range_low+1;
+		int bitCount = range==1?0:numberOfBits(range);
+		int offset = 0;
+		if(bitCount!=0) {
+			offset = in.read(bitCount);
+		}
+		if(offset == -1) {
+			throw new Exception("negative offset error");
+		}	
+		int value = range_low + offset;
+		values[mid] = value;
+		decompressInteger(values, low, mid-1, minValue, value-1, in);
+		decompressInteger(values, mid+1, high, value+1, maxValue, in);
+		return;		
+	}
+	
+		
+
 }

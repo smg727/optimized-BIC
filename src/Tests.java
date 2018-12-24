@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.TreeSet;
 
 import org.junit.jupiter.api.Test;
 
@@ -87,10 +88,25 @@ class Tests {
 		if(bitsRequired!=97) {
 			fail("testBitsRequiredForList");
 		}
-		System.out.println("testBitsRequiredForList : Pass");
-		
+		System.out.println("testBitsRequiredForList : Pass");	
 	}
 
-	
+	@Test
+	void testBitsRequiredForPartitioned() throws Exception{
+		Integer[] data = {117,119,122,123,126,127,7199,7200,7204,7205};
+		List<Integer> values = new ArrayList<>(Arrays.asList(data));
+		TreeSet<Integer> partitions = new TreeSet<>();
+		int bitsRequired = OptimizedBic.bitsRequiredForPartitioned(values, 1, 10000, partitions);
+		if(bitsRequired!=97) {
+			fail("testBitsRequiredForPartitioned error, no partition");
+		}
+		
+		partitions.add(5);
+		bitsRequired = OptimizedBic.bitsRequiredForPartitioned(values, 1, 10000, partitions);
+		if(bitsRequired!=56) {
+			fail("testBitsRequiredForPartitioned error, 1 partition");
+		}
+		System.out.println("testBitsRequiredForPartitioned : Pass");
+	}
 
 }

@@ -1,6 +1,8 @@
+import java.util.Iterator;
 import java.util.List;
+import java.util.TreeSet;
 
-import org.junit.validator.PublicClassValidator;
+
 
 public class OptimizedBic {
 	
@@ -25,4 +27,33 @@ public class OptimizedBic {
 		return (int)Math.ceil((Math.log(x) / Math.log(2)));
 	}
 	
+	public static int bitsRequiredForPartitioned(List<Integer> values,
+			 int minValue, int maxValue, TreeSet<Integer> partitions) throws java.lang.Exception {
+		int bitsRequired = 0;
+		Iterator<Integer> iterator = partitions.iterator();
+		int low = 0;
+		int high = values.size()-1;
+		
+		if(partitions.size()==0) {
+			return bitsRequiredForList(values, low, high, minValue, maxValue);
+		}
+		
+		while (iterator.hasNext()) {
+			high  = iterator.next();
+			if(high>=values.size()) {
+				throw new Exception("partition point outside range");
+			}
+			
+			if(low==0) {
+				bitsRequired+= bitsRequiredForList(values, low, high, minValue, values.get(high));
+			} else {
+				bitsRequired+= bitsRequiredForList(values, low, high, values.get(low), values.get(high));
+			}
+			
+			low = high+1;
+		}
+		
+		bitsRequired+= bitsRequiredForList(values, low, values.size()-1, values.get(low), maxValue);
+		return bitsRequired;
+	}
 }

@@ -1,6 +1,8 @@
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.TreeSet;
+
 
 
 public class OptimizedBic {
@@ -75,7 +77,7 @@ public class OptimizedBic {
 		TreeSet<Integer> partitions = new TreeSet<>();
 		
 		int previousCount = bitsRequiredForPartitioned(values, minValue, maxValue, partitions,true);
-		System.out.println("bits for no partition "+previousCount);
+//		System.out.println("bits for no partition "+previousCount);
 		
 		while(true) {
 			
@@ -100,11 +102,11 @@ public class OptimizedBic {
 			int newBitCount = bitsRequiredForPartitioned(values, minValue, maxValue, partitions,true);
 			System.out.println("adding partition at "+gapIndex+" changes bits from "+previousCount+" to "+newBitCount);
 			if(newBitCount/previousCount>0.972) {
-				System.out.println("no gain partitioning anymore");
+//				System.out.println("no gain partitioning anymore");
 				partitions.remove(Integer.valueOf(gapIndex));
 				return partitions;
 			}
-			System.out.println("partitioned at "+gapIndex);
+//			System.out.println("partitioned at "+gapIndex);
 			previousCount = newBitCount;
 		}
 	}
@@ -133,7 +135,13 @@ public class OptimizedBic {
 		int range_high = maxValue - (high-mid);
 		int range_low = minValue + (mid-low);
 		int midVal = values.get(mid);
-
+		
+		//debug
+		int valueToCompress = midVal-range_low;
+		int range = range_high-range_low+1;
+		int bitCount = range==1?0:numberOfBits(range);
+//		System.out.println("low: "+low+" high: "+high+" minRange: "+range_low+" maxRange: "+range_high+" minVal: "+minValue
+//					+" maxVal: "+maxValue+" value: "+midVal+" range "+range);
 		compressAndWriteInteger(midVal, range_low, range_high, out);
 		compressIntegers(values, out, low, mid-1, minValue,midVal-1);
 		compressIntegers(values, out, mid+1, high, midVal+1, maxValue);
@@ -144,7 +152,8 @@ public class OptimizedBic {
 	static void compressData(List<Integer> values, BitOutputStream out) throws Exception {
 
 		//write number of elements
-		VByte.encode(out, values.size());
+		System.out.println("encode: data size:"+values.size());
+		VByte.encode(out, values.size()-1);
 		
 		int minValue = values.get(0);
 		int maxValue = values.get(values.size()-1);
@@ -152,6 +161,7 @@ public class OptimizedBic {
 		int high = values.size()-1;
 		// generate partitions
 		TreeSet<Integer> partitions = findParitions(values, values.get(0), values.get(values.size()-1));
+		System.out.println("partitions count "+partitions.size());
 		
 		// if there is no partition, compress the whole list
 		if(partitions.size()==0) {
@@ -177,6 +187,7 @@ public class OptimizedBic {
 			VByte.encode(out, minValue);
 			VByte.encode(out, maxValue);
 			compressIntegers(values, out, low, high, minValue, maxValue);
+			out.flush();
 			low = high+1;
 		}
 		
@@ -197,7 +208,7 @@ public class OptimizedBic {
 		
 		if(low>high)
 			return;
-			
+		
 		int mid = low + (high-low)/2;
 		int range_high = maxValue - (high-mid);
 		int range_low = minValue + (mid-low);
@@ -208,15 +219,34 @@ public class OptimizedBic {
 			offset = in.read(bitCount);
 		}
 		if(offset == -1) {
+			System.out.println("negative offset error");
 			throw new Exception("negative offset error");
 		}	
 		int value = range_low + offset;
+//		System.out.println("low: "+low+" high: "+high+" minRange: "+range_low+" maxRange: "+range_high+" offset: "+offset+" minVal: "+minValue
+//				+" maxVal: "+maxValue+" value: "+value+" range: "+range);
 		values[mid] = value;
 		decompressInteger(values, low, mid-1, minValue, value-1, in);
 		decompressInteger(values, mid+1, high, value+1, maxValue, in);
 		return;		
 	}
-	
+
+	static int[] decompressData(BitInputStream in) throws Exception {
+		System.out.println("decompresing data");
+		int size = (int)VByte.decode(in);
+		System.out.println("decode: data size: "+(size+1));
+		int[] values = new int[size+1];
+		int low = (int) VByte.decode(in);
+		while(low!=-1) {
+			int high = (int)VByte.decode(in);
+			int minValue = (int)VByte.decode(in);
+			int maxValue = (int)VByte.decode(in);
+			System.out.println("low: "+low+" high: "+high+" minValue: "+minValue+" maxValue: "+maxValue);
+			decompressInteger(values, low, high, minValue, maxValue, in);
+			low = (int) VByte.decode(in);
+		}
+		return values;
+	}
 		
 
 }

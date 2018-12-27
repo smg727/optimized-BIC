@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test;
 class Tests {
 	
 	// checks vByte functionality by encoding & decoding an array of int's
-//	@Test
+	@Test
 	void testVByte() {
 		String testFile = "testVByte";
 		Integer[] input = {1,100,5,2000};
@@ -127,11 +127,20 @@ class Tests {
 	@Test
 	void testCompressData() throws Exception {
 		Integer[] data = {117,119,122,123,126,127,7199,7200,7204,7205};
+//		Integer[] data = {117,119,122,123,126,127};
 		List<Integer> values = new ArrayList<>(Arrays.asList(data));
+//		List<Integer> values = FileOps.readFileData("list/22.txt");
 		String testFile = "testFile";
 		BitOutputStream outputStream = new BitOutputStream(testFile);
 		OptimizedBic.compressData(values, outputStream);
 		outputStream.close();
+		
+		BitInputStream inputStream = new BitInputStream(testFile);
+		int[] output = OptimizedBic.decompressData(inputStream);
+		System.out.println("input "+Arrays.toString(data));
+		System.out.println("output "+Arrays.toString(output));
+		inputStream.close();
+		// compare two arrays
 	}
 	
 

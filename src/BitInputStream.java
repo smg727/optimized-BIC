@@ -128,6 +128,7 @@ public class BitInputStream extends InputStream
      * @param howManyBits is the number of bits to read and return
      * @return the value read, only rightmost <code>howManyBits</code>
      * are valid, returns -1 if not enough bits left
+     * @throws IOException 
      */
 
     public int read(int howManyBits) throws IOException

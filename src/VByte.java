@@ -78,7 +78,7 @@ public class VByte {
 	public static int bitsForMetadata(int low, int high, int minValue, int maxValue) {
 		int bitsRequired  = 0;
 		bitsRequired+= bytesRequired(low)*8;
-		bitsRequired+= bytesRequired(high-low)*8;
+		bitsRequired+= bytesRequired(high)*8;
 		bitsRequired+= bytesRequired(minValue)*8;
 		bitsRequired+= bytesRequired(maxValue)*8;
 		return bitsRequired;
@@ -87,7 +87,7 @@ public class VByte {
 	public static long decode(InputStream in) throws IOException {
 		long out = 0;
 		int shift=0;
-		long readbyte = in.read(); if(readbyte==-1) throw new EOFException();
+		long readbyte = in.read(); if(readbyte==-1) return -1;
 		
 		while( (readbyte & 0x80)==0) {
 			if(shift>=50) { // We read more bytes than required to load the max long
